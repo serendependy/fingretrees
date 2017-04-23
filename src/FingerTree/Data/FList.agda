@@ -96,6 +96,8 @@ module _ {a} {A : Set a} where
     = x ∷ flappendList bl[ bs ] xs
   flappendList (x ∷ fs) xs = x ∷ flappendList fs xs
 
+  _FL++L_ = flappendList
+
   flprependBList : ∀ {min max max'}
                   → BList A max' → FList A min max
                   → FList A min (max' + max)
@@ -109,3 +111,5 @@ module _ {a} {A : Set a} where
              → FList A (min₁ + min₂) (max₁ + max₂)
   flappend bl[ xs ] ys = flprependBList xs ys
   flappend (x ∷ xs) ys = x ∷ flappend xs ys
+
+  _++FL_ = flappend

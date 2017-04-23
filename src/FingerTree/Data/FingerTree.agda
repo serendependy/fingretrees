@@ -154,13 +154,13 @@ app3 {A = A} (dl₁ l∷ xs ∷r dr₁) ts (dl₂ l∷ ys ∷r dr₂)
   where
   ns : FList A 2 (4 + (length ts + 4))
   ns
-    with (flappendList dr₁ ts)
+    with dr₁ FL++L ts
            ofType FList A (1 + length ts) _
   ... | dr₁++ts
-    with (fldemote {min = 1} (length ts) dr₁++ts)
+    with fldemote (length ts) dr₁++ts
            ofType FList A 1 _
   ... | dr₁++ts'
-    = flappend dr₁++ts' dl₂
+    = dr₁++ts' ++FL dl₂
 
 _▹◃_ : ∀ {a} {A : Set a}
        → (xs ys : FingerTree A) → FingerTree A
