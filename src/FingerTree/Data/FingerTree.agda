@@ -6,6 +6,7 @@ open import Tactic.Nat
 open import FingerTree.Data.BList
 open import FingerTree.Data.FList
 open import FingerTree.Data.SeqView
+open import FingerTree.Data.List
 open import FingerTree.Class.Reduce
 
 Node : ∀ {a} (A : Set a) → Set a
@@ -125,33 +126,42 @@ module _ {a} {A : Set a} where
   ... | x ∷ SA
     = false
 
-nodes : ∀ {a} {A : Set a} {max}
-        → FList A 2 (2 + max)
-        → FList (Node A) 1 (1 + max)
-nodes xs
-  with flisMin xs
-... | left (a ∷ b ∷ []) = (a ∷ (b ∷ bl[ [] ])) ∷ bl[ [] ]
-... | right xs₁
-  with flisMin xs₁
-... | (left (a ∷ b ∷ c ∷ []))
-  = (a ∷ b ∷ bl[ [] ]) ∷ bl[ [] ]
-... | (right xs₂) with flisMin xs₂
-... | (left (a ∷ b ∷ c ∷ d ∷ []))
-  = (a ∷ b ∷ bl[ [] ]) ∷ fldemote 1 {!? ∷ bl[ [] ]!}
-nodes xs | right xs₁ | (right xs₂) | (right x) = {!!}
--- nodes (a ∷ b ∷ bl[ [] ])
---   = (a ∷ b ∷ bl[ [] ]) ∷ bl[ [] ]
--- nodes (a ∷ b ∷ bl[ c ∷ [] ])
---   = (a ∷ b ∷ bl[ c ∷ [] ]) ∷ bl[ [] ]
--- nodes (a ∷ b ∷ bl[ c ∷ d ∷ [] ])
---   = (a ∷ b ∷ bl[ [] ]) ∷ bl[ (c ∷ d ∷ bl[ [] ]) ∷ [] ]
--- nodes (a ∷ b ∷ bl[ c ∷ d ∷ (_∷_ {n} e xs) ])
---   with blpromote 2 xs
--- ... | xs“
---   rewrite auto ofType n + 2 ≡ suc (suc n)
---   = (a ∷ b ∷ bl[ c ∷ [] ]) ∷ fldemote 1 (nodes (d ∷ e ∷ bl[ xs“ ]))
--- nodes (a ∷ b ∷ c ∷ bl[ [] ])
---   = (a ∷ b ∷ bl[ c ∷ [] ]) ∷ bl[ [] ]
--- nodes (x ∷ x₁ ∷ x₂ ∷ bl[ x₃ ∷ xs ]) = {!!}
--- nodes (x ∷ x₁ ∷ x₂ ∷ x₃ ∷ bl[ xs ]) = {!!}
--- nodes (x ∷ x₁ ∷ x₂ ∷ x₃ ∷ x₄ ∷ xs) = {!!}
+  nodes : ∀ {max}
+          → FList A 2 max
+          → List (Node A)
+  nodes (a ∷ b ∷ bl[ [] ])
+    = [ a ∷ b ∷ bl[ [] ] ]
+  nodes (a ∷ b ∷ bl[ c ∷ [] ])
+    = [ a ∷ b ∷ bl[ c ∷ [] ] ]
+  nodes (a ∷ b ∷ bl[ c ∷ d ∷ [] ])
+    = (a ∷ b ∷ bl[ [] ]) ∷ (c ∷ d ∷ bl[ [] ]) ∷ []
+  nodes (a ∷ b ∷ bl[ c ∷ d ∷ e ∷ xs ])
+    = (a ∷ b ∷ bl[ c ∷ [] ]) ∷ nodes (d ∷ e ∷ bl[ xs ])
+
+
+app3 : ∀ {a} {A : Set a}
+       → FingerTree A → List A → FingerTree A → FingerTree A
+app3 [] ts ys
+  = ts ◃' ys
+app3 xs ts []
+  = xs ▹' ts
+app3 ft[ a ] ts ys
+  = a ◃ (ts ◃' ys)
+app3 xs ts ft[ a ]
+  = (xs ▹' ts) ▹ a
+app3 {A = A} (dl₁ l∷ xs ∷r dr₁) ts (dl₂ l∷ ys ∷r dr₂)
+  = dl₁ l∷ app3 xs (nodes ns) ys ∷r dr₂
+  where
+  ns : FList A 2 (4 + (length ts + 4))
+  ns
+    with (flappendList dr₁ ts)
+           ofType FList A (1 + length ts) _
+  ... | dr₁++ts
+    with (fldemote {min = 1} (length ts) dr₁++ts)
+           ofType FList A 1 _
+  ... | dr₁++ts'
+    = flappend dr₁++ts' dl₂
+
+_▹◃_ : ∀ {a} {A : Set a}
+       → (xs ys : FingerTree A) → FingerTree A
+xs ▹◃ ys = app3 xs [] ys
