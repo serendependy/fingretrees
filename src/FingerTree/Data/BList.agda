@@ -30,9 +30,18 @@ module _ {a} {A : Set a} where
   blpromote n [] = []
   blpromote n (x ∷ xs) = x ∷ blpromote n xs
 
-  blfromVec : ∀ {m n} → Vec A n → BList A (n + m)
-  blfromVec [] = []
-  blfromVec (x ∷ xs) = x ∷ blfromVec xs
+  blfromVec : ∀ max {n} → Vec A n → BList A (max + n)
+  blfromVec _ []
+    = []
+  blfromVec max {suc n} (_∷_ x xs)
+    rewrite auto ofType max + (1 + n) ≡ 1 + (max + n)
+    = x ∷ blfromVec max xs
+
+  blappendList : ∀ {max} → BList A max → (xs : List A) → BList A (max + length xs)
+  blappendList {max} [] xs
+    = blfromVec max (listToVec xs)
+  blappendList (x ∷ bs) xs
+    = x ∷ blappendList bs xs
 
   blappend : ∀ {max₁ max₂} → BList A max₁ → BList A max₂ → BList A (max₁ + max₂)
   blappend {max₁} {max₂} [] ys
