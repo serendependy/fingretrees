@@ -83,3 +83,29 @@ module _ {a} {A : Set a} where
 
   fltail : ∀ {min max} → FList A (suc min) (suc max) → FList A min max
   fltail (x ∷ xs) = xs
+
+
+  flappendList : ∀ {min max}
+                 → FList A min max → (xs : List A)
+                 → FList A (min + length xs) (max + length xs)
+  flappendList {max = max} bl[ bs ] []
+    rewrite auto ofType max + 0 ≡ max
+    = bl[ bs ]
+  flappendList {max = max} bl[ bs ] (x ∷ xs)
+    rewrite auto ofType max + suc (length xs) ≡ suc (max + length xs)
+    = x ∷ flappendList bl[ bs ] xs
+  flappendList (x ∷ fs) xs = x ∷ flappendList fs xs
+
+  flprependBList : ∀ {min max max'}
+                  → BList A max' → FList A min max
+                  → FList A min (max' + max)
+  flprependBList {max = max} {max' = max'} [] fs
+    rewrite auto ofType max' + max ≡ max + max'
+    = flpromote _ fs
+  flprependBList (x ∷ bs) fs = fldemotes (x ∷ flprependBList bs fs)
+
+  flappend : ∀ {min₁ min₂ max₁ max₂}
+             → FList A min₁ max₁ → FList A min₂ max₂
+             → FList A (min₁ + min₂) (max₁ + max₂)
+  flappend bl[ xs ] ys = flprependBList xs ys
+  flappend (x ∷ xs) ys = x ∷ flappend xs ys
